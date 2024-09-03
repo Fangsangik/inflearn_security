@@ -1,7 +1,0 @@
-# 스프링 시큐리티가 제공하는 기본적 아이디를 직접 설정
-spring:
-  security:
-    user:
-      name: user
-      password: 1111
-      roles: USER
