@@ -3,6 +3,7 @@ package com.example.springsecurity.config;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,10 +36,14 @@ public class SecurityConfig {
                 //SecurityFilterChainConfiguration -> filter 조건 성립 안됨
                 //SecurityFilterChain -> Bean을 생성했기 때문 -> Bean이 없을 경우에만 성립된다. -> 사용자가 설정한 쪽으로 오게 된다.
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                //인증을 받지 못한 사용자를 인증을 받을 수 있도록 처리
-                .httpBasic(basic ->  basic
-                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
-                );
+                .formLogin(Customizer.withDefaults())
+                .rememberMe(rememberMe -> rememberMe
+                        //.alwaysRemember(true) //언제든지 기억
+                        .tokenValiditySeconds(3600)
+                        .userDetailsService(inMemoryUserDetailsManager())
+                        .rememberMeCookieName("remember")
+                        .key("security"));
+
 
         return http.build(); // securityFilterChain 생성된다.
     }
