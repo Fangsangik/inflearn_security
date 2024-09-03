@@ -36,7 +36,7 @@ public class SecurityConfig {
                 //SecurityFilterChain -> Bean을 생성했기 때문 -> Bean이 없을 경우에만 성립된다. -> 사용자가 설정한 쪽으로 오게 된다.
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 //인증을 받지 못했을 경우 인증을 받을 수 있게 설정
-                .formLogin(Customizer.withDefaults());
+                .httpBasic(Customizer.withDefaults());
 
         return http.build(); // securityFilterChain 생성된다.
     }
