@@ -1,21 +1,16 @@
 package com.example.springsecurity.config;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 import java.io.IOException;
 
@@ -41,37 +36,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-                //SecurityFilterChainConfiguration -> filter 조건 성립 안됨
-                //SecurityFilterChain -> Bean을 생성했기 때문 -> Bean이 없을 경우에만 성립된다. -> 사용자가 설정한 쪽으로 오게 된다.
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                //인증을 받지 못했을 경우 인증을 받을 수 있게 설정
-                .formLogin(form -> form
-                        //.loginPage("/loginPage") //-> 인증을 받지 못했을때 loginPage로 이동
-                        .loginProcessingUrl("/loginProc")
-                        //true -> root로 가게끔 설정  / false -> home으로 이동
-                        //인증 이전에 보안이 필요한 페이지 방문 -> 인증 성공, 이전 위치로 다이렉트
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/failed")
-                        .usernameParameter("userId")
-                        .passwordParameter("password")
+        HttpSessionRequestCache cache = new HttpSessionRequestCache();
+        cache.setMatchingRequestParameterName("customParam = y");
 
-                        //custom 한 부분이 더 우선시 된다.
-                        .successHandler(new AuthenticationSuccessHandler() { //지정한 클래스로
-                            @Override
-                            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                                log.info("Authentication : {}", authentication);
-                                //어디로 이동 할 것인지
-                                response.sendRedirect("/home");
-                            }
-                        })
-                        .failureHandler((request, response, exception) -> { //예외 정보가 남으면 된다.
-                            log.warn("exception : {}", exception.getMessage());
-                            response.sendRedirect("/login");
-                        })
-                        .permitAll()
-                );
-        // Customizer -> 커스텀 할 예정
+        http
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/loginSuccess")
+                .permitAll()
+                                .anyRequest().authenticated())
+                .formLogin(Customizer.withDefaults());
 
         return http.build(); // securityFilterChain 생성된다.
     }
