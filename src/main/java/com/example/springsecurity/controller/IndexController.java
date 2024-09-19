@@ -16,9 +16,8 @@ public class IndexController {
     SecurityContextService securityContextService;
 
     @GetMapping("/")
-    public String index(String customParam) {
-        securityContextService.SecurityContext();
-        return "index";
+    public Authentication index(Authentication authentication) {
+        return authentication;
     }
 
 
