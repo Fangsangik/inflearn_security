@@ -39,26 +39,19 @@ import java.io.IOException;
 //    @Bean
 //    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 //
+//        //DaoAuthenticationProvider 생성 -> custom하게 생성 하지 않았을 경우 생성
+//
 //        AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
-//        AuthenticationManager authenticationManager = builder.build(); //빌드를 한번 가져온 경우 -> getObject를 통해 가져옴
+//        builder.authenticationProvider(new CustomAuthenticationProvider());
+//        builder.authenticationProvider(new CustomAuthenticationProvider2());
 //
 //        http
 //                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/", "/api/login")
-//                        .permitAll()
+//                        //.requestMatchers("/").permitAll()
 //                        .anyRequest().authenticated())
-//                //.formLogin(Customizer.withDefaults())
-//                .authenticationManager(authenticationManager)
-//                .addFilterBefore(customAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class)
-//        ;
-//
+//                .formLogin(Customizer.withDefaults());
+//               // .authenticationProvider(new CustomAuthenticationProvider())
+//               // .authenticationProvider(new CustomAuthenticationProvider2());
 //        return http.build(); // securityFilterChain 생성된다.
-//    }
-//
-//    public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-//        CustomAuthenticationFilter filter = new CustomAuthenticationFilter(http);
-//        filter.setAuthenticationManager(authenticationManager);
-//
-//        return filter;
 //    }
 //}
