@@ -25,15 +25,17 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
         setSecurityContextRepository(getSecurityContextRepository(http));
     }
 
+    //수동으로 HttpSession 저장
     private SecurityContextRepository getSecurityContextRepository(HttpSecurity http) {
-        SecurityContextRepository securityContextRepository = http.getSharedObject(SecurityContextRepository.class);
-        if (securityContextRepository == null) {
-            securityContextRepository = new DelegatingSecurityContextRepository(
-                    new RequestAttributeSecurityContextRepository(), new HttpSessionSecurityContextRepository()
-            );
-
+        SecurityContextRepository sharedObject = http.getSharedObject(SecurityContextRepository.class);
+        if (sharedObject == null) {
+            DelegatingSecurityContextRepository repository =
+                    new DelegatingSecurityContextRepository(
+                            new HttpSessionSecurityContextRepository(),
+                            new RequestAttributeSecurityContextRepository());
         }
-        return securityContextRepository;
+
+        return sharedObject;
     }
 
     @Override

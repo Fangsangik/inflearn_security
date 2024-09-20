@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Slf4j
 @Configuration
@@ -23,22 +25,32 @@ public class SecurityConfig {
         return new CustomUserService();
     }
 
+    //authenticationManager -> 일반 객체로 생성 했기에 Bean으로 굳이 주입 안해도 됨
+    public CustomAuthenticationFilter customAuthenticationFilter(HttpSecurity httpSecurity,
+                                                                 AuthenticationManager authenticationManager) {
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(httpSecurity);
+        customAuthenticationFilter.setAuthenticationManager(authenticationManager);
+        return customAuthenticationFilter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        //DaoAuthenticationProvider 생성 -> custom하게 생성 하지 않았을 경우 생성
-
         AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        builder.authenticationProvider(new CustomAuthenticationProvider());
-        builder.authenticationProvider(new CustomAuthenticationProvider2());
+        AuthenticationManager manager = builder.build();
 
+        //이상태에서 로그인 하면 인증 상태 지속 X
+        //Session이 아니라 요청 객체로 저장 되기 때문에 저장이 되지 않음
         http
                 .authorizeHttpRequests(auth -> auth
-                        //.requestMatchers("/").permitAll()
+                        .requestMatchers("/api/login").permitAll()
                         .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults());
-               // .authenticationProvider(new CustomAuthenticationProvider())
-               // .authenticationProvider(new CustomAuthenticationProvider2());
+                .formLogin(Customizer.withDefaults())
+                .authenticationManager(manager)
+                //.securityContext(securityContext -> securityContext.requireExplicitSave(false)) // false이면 -> HttpSession에 저장
+                .addFilterBefore(customAuthenticationFilter(http, manager),
+                        UsernamePasswordAuthenticationFilter.class);
+
         return http.build(); // securityFilterChain 생성된다.
     }
 }
