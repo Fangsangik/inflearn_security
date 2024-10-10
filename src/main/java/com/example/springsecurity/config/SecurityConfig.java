@@ -41,15 +41,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        //이상태에서 로그인 하면 인증 상태 지속 X
-        //Session이 아니라 요청 객체로 저장 되기 때문에 저장이 되지 않음
-        http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login").permitAll()
+        http.authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/invalidSessionUrl", "/expiredUrl").permitAll()
                         .anyRequest().authenticated())
-                //.formLogin(Customizer.withDefaults());
-                //스프링 시큐리티는 변경을 위해서 던지는 요청 방식 -> HTTP 메서드 방식은 csrf 토큰을 요함 (악의적 변경 방지를 위해서 사용)
-                .csrf(AbstractHttpConfigurer::disable);
+                .formLogin(Customizer.withDefaults())
+                .sessionManagement(session -> session
+                        .invalidSessionUrl("/invalidSessionUrl")
+                        .maximumSessions(2)
+                        .maxSessionsPreventsLogin(false)
+                        .expiredUrl("/expiredUrl")
+                );
 
         return http.build(); // securityFilterChain 생성된다.
     }
