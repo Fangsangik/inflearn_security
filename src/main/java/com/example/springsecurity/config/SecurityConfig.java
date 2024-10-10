@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -42,15 +43,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/invalidSessionUrl", "/expiredUrl").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
-                .sessionManagement(session -> session
-                        .invalidSessionUrl("/invalidSessionUrl")
-                        .maximumSessions(2)
-                        .maxSessionsPreventsLogin(false)
-                        .expiredUrl("/expiredUrl")
+                .sessionManagement((session) -> session
+                        .sessionFixation(
+                                sessionFixation -> sessionFixation.changeSessionId() //default
+                        )
                 );
+
 
         return http.build(); // securityFilterChain 생성된다.
     }
