@@ -12,6 +12,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -32,11 +34,9 @@ public class SecurityConfig {
         return  new InMemoryUserDetailsManager(user);
     }
 
-    //authenticationConfiguration을 통해 설정 클래스를 얻을 수 있다.
-    // -> login에 사용되는 authenticationManager를 Bean으로 설정
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public SessionRegistry sessionRegistry(){
+        return new SessionRegistryImpl();
     }
 
     @Bean
@@ -46,8 +46,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
+                        .maximumSessions(1) //세션 관련된 필터 작업을 하려면 필수적으로 설정 해줘야 함
+                        .maxSessionsPreventsLogin(true)
                 );
 
         return http.build(); // securityFilterChain 생성된다.
